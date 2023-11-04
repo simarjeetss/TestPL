@@ -4,9 +4,12 @@ namespace TestPL.DataStores
 {
     public interface IDataStore
     {
-        public bool save(string id, PollQuestion data);
-        public PollQuestion retrieve(string id);
+        public bool save(int id, Question data);
+        public Question retrieve(int id);
 
-        public List<PollQuestion> printAll();
+        public String[] printAll();
+        public bool update(Question newQuestion);
+        public List<Question> ReadQuestionsFromFile();
+        public Boolean check(int id,  Answer ans);
     }
 }

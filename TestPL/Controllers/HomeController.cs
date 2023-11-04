@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System.Diagnostics;
 using TestPL.DataStores;
 using TestPL.Models;
+using System.Text.Json.Serialization;
 
 namespace TestPL.Controllers
 {
@@ -32,7 +33,7 @@ namespace TestPL.Controllers
         public IActionResult Promo()
         {
 
-            return Ok("This is the privacy page");
+            return View();
         }
 
 
@@ -43,19 +44,9 @@ namespace TestPL.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        [HttpGet("hello/{name}")]
-        public IActionResult World(string name)
-        {
-            if (name.Equals("sunny"))
-            {
-                return Ok("hello legend");
-            }
-            return Ok("Hello " + name);
-        }
-
         //post method to save into a file on the localhost
         [HttpPost("/questions")]
-        public IActionResult postQuestion([FromBody] PollQuestion question)
+        public IActionResult postQuestion([FromBody] Question question)
         {
             if (question != null)
             {
@@ -65,25 +56,75 @@ namespace TestPL.Controllers
             return Ok("question sent by user: " + JsonConvert.SerializeObject(question, Formatting.Indented) + "\n saved by id:" + question.id);
         }
         //GET method to retrieve question by id
-        [HttpGet("questions/{questionId}")]
-        public IActionResult retrieveById(string questionId)
+        [HttpGet("question/{id}")]
+        public IActionResult retrieveById(int id)
         {
-            PollQuestion response = dataStore.retrieve(questionId);
+            Question response = dataStore.retrieve(id);
 
 
-            return Ok("Question with ID " + questionId + " is " + JsonConvert.SerializeObject(response, Formatting.Indented));
+            return Ok("Question with ID " + id + " is " + JsonConvert.SerializeObject(response, Formatting.Indented));
         }
 
 
         //GET method to print all the questions present
-        [HttpGet("printAll")]
+        [HttpGet("print")]
         public IActionResult print()
         {
-            List<PollQuestion> all = dataStore.printAll();
+            String[] all = dataStore.printAll();
 
-
+            
             return Ok("Questions are:- \n" + JsonConvert.SerializeObject(all,Formatting.Indented));
         }
+
+
+
+        //PUT method to update the existing question
+        [HttpPut("question/update/{id}")]
+        public IActionResult UpdateQuestion([FromBody]Question question)
+        {
+
+            dataStore.update( question);
+
+
+
+            //return Ok("Question with ID " + JsonConvert.SerializeObject(id, Formatting.Indented) + " updated");
+            return Ok("OK");
+        }
+
+        [HttpGet("poll")]
+        public IActionResult GetRandomQuestion()
+        {
+            // Read questions from a file into a list
+            List<Question> questions = dataStore.ReadQuestionsFromFile();
+
+            // Generate a random index to select a question
+            Random random = new Random();
+            int randomIndex = random.Next(0, questions.Count);
+
+            // Return the randomly selected question
+            Question randomQuestion = questions[randomIndex];
+            return Ok(randomQuestion);
+        }
+
+
+
+        [HttpPost("poll/{questionId}")]
+        public IActionResult Check(int questionId, [FromBody]Answer ans)
+        {
+            bool isCorrect = dataStore.check(questionId, ans);
+
+            if (isCorrect)
+            {
+                return Ok("7 Croreeeeee!!!!!!!!!!!!!!!!!!!!");
+            }
+            else
+            {
+                return Ok("Galat Jawab");
+
+            }
+
+        }
+
 
     }
 }
